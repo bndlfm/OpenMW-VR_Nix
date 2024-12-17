@@ -126,8 +126,11 @@ in
 
     runtimeDependencies = [
       libuuid
-      libglvnd
+      libGL
+      mesa
     ];
+
+    enableParallelBuilding = true;
 
     cmakeFlags = [
       "-DOpenGL_GL_PREFERENCE=LEGACY"
@@ -135,6 +138,7 @@ in
       "-DFETCHCONTENT_SOURCE_DIR_OPENXR=${openxr-sdk}"
       "-DBUILD_OPENMW_VR=ON"
       "-DCMAKE_BUILD_TYPE=RELEASE"
+      "-DCMAKE_SKIP_BUILD_PATH=ON"
     ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
       "-DOPENMW_OSX_DEPLOYMENT=ON"
     ];
@@ -159,11 +163,15 @@ in
     #  patchelf --set-rpath "${lib.makeLibraryPath [ libGL libglvnd libuuid ]}:$origRpath" "$omwvrExe"
     #  '';
 
+    doCheck = false;
+    doInstallCheck = false;
+    dontCheck = true;
+
     meta = with lib; {
       description = "Unofficial VR open source engine reimplementation of the game Morrowind";
       homepage = "https://openmw.org";
       license = licenses.gpl3Plus;
-      maintainers = with maintainers; [ abbradar marius851000 ];
+      maintainers = with maintainers; [ ];
       platforms = platforms.linux ++ platforms.darwin;
     };
   }
