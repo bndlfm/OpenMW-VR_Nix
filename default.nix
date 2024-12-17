@@ -59,12 +59,19 @@ let
 
   mkDerivation = pkgs.libsForQt5.callPackage ({ mkDerivation }: mkDerivation) {};
 
+  
   openxr-sdk = fetchFromGitHub {
-    owner = "bndlfm";
-    repo = "OpenXR-SDK_4_OpenMW-VR_Nix";
-    rev = "d417ad122a04c1a6d191928170aa1a6368229678";
-    hash = "sha256-5tbOsvMWVvWZUl48QtqBJhVqpUMk3WzDY5lhxXx7l0w=";
+    owner = "KhronosGroup";
+    repo = "OpenXR-SDK";
+    rev = "b7ada0bdecd9830f27c2221dad6f0bb933c64f15";
+    hash = "sha256-YsT6z0uymEF35US1ux7E4JOAK6YeOzryulYVGRi0EjA=";
   };
+  #openxr-sdk = fetchFromGitHub {
+  #  owner = "bndlfm";
+  #  repo = "OpenXR-SDK_4_OpenMW-VR_Nix";
+  #  rev = "d417ad122a04c1a6d191928170aa1a6368229678";
+  #  hash = "sha256-5tbOsvMWVvWZUl48QtqBJhVqpUMk3WzDY5lhxXx7l0w=";
+  #};
 
 in
 
@@ -77,11 +84,20 @@ in
       repo = "openmw";
       rev = "770584c5112e46be1a00b9e357b0b7f6b449cac5";
       hash = "sha256-C8lFjKIdbHyvRcZzJNUj8Lif9IqNvuYURwRMpb4sxiQ=";
+      postFetch = /*sh*/ ''
+        substituteInPlace $out/src/loader/openxr.pc.in \
+          --replace 'libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@' 'libdir=@CMAKE_INSTALL_FULL_LIBDIR@'
+      '';
     };
 
     postPatch = /*sh*/ ''
       sed '1i#include <memory>' -i components/myguiplatform/myguidatamanager.cpp ### gcc12
-    '' + lib.optionalString stdenv.hostPlatform.isDarwin /* sh */ ''
+    ''
+
+#      substituteInPlace "${openxr-sdk}/src/loader/openxr.pc.in" \
+#        --replace 'libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@' 'libdir=@CMAKE_INSTALL_FULL_LIBDIR@'
+
+    + lib.optionalString stdenv.hostPlatform.isDarwin /* sh */ ''
       sed -i '/fixup_bundle/d' CMakeLists.txt ### Don't fix Darwin app bundle
     '';
 
