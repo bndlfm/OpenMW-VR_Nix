@@ -136,9 +136,9 @@ in
       "-DOpenGL_GL_PREFERENCE=LEGACY"
       "-DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1"
       "-DFETCHCONTENT_SOURCE_DIR_OPENXR=${openxr-sdk}"
+      "-DCMAKE_SKIP_BUILD_PATH=ON"
       "-DBUILD_OPENMW_VR=ON"
       "-DCMAKE_BUILD_TYPE=RELEASE"
-      "-DCMAKE_SKIP_BUILD_PATH=ON"
     ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
       "-DOPENMW_OSX_DEPLOYMENT=ON"
     ];
@@ -162,10 +162,6 @@ in
     #  origRpath="$(patchelf --print-rpath "$omwvrExe")"
     #  patchelf --set-rpath "${lib.makeLibraryPath [ libGL libglvnd libuuid ]}:$origRpath" "$omwvrExe"
     #  '';
-
-    doCheck = false;
-    doInstallCheck = false;
-    dontCheck = true;
 
     meta = with lib; {
       description = "Unofficial VR open source engine reimplementation of the game Morrowind";
