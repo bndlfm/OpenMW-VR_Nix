@@ -136,7 +136,7 @@ in
       "-DOpenGL_GL_PREFERENCE=LEGACY"
       "-DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1"
       "-DFETCHCONTENT_SOURCE_DIR_OPENXR=${openxr-sdk}"
-      "-DCMAKE_SKIP_BUILD_PATH=ON"
+      "-DCMAKE_SKIP_BUILD_RPATH=ON"
       "-DBUILD_OPENMW_VR=ON"
       "-DCMAKE_BUILD_TYPE=RELEASE"
     ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
