@@ -1,52 +1,6 @@
-{ pkgs
-, lib
-, stdenv
-
-, cmake
-, pkg-config
-, python3
-
-, fetchFromGitLab
-, fetchFromGitHub
-
-### DOCUMENTATION
-, doxygen
-, graphviz # Doxygen requires dot
-
-### LIBRARIES
-, boost
-, bullet
-, ffmpeg_6 # Please unpin this on the next OpenMW release.
-, libGL
-, libglvnd
-, libuuid
-, luajit
-, lz4
-, mesa
-, mygui
-, nvidia_x11
-, openal
-, openscenegraph
-, openxr-loader
-, recastnavigation
-, SDL2
-, unshield
-, wrapQtAppsHook
-, yaml-cpp
-
-### MAC OS SPECIFIC
-, CoreMedia
-, VideoToolbox
-, VideoDecodeAcceleration
-
-### LINUX (XORG) SPECIFIC?
-, xorg
-
-}:
-
+{ pkgs, lib }:
 let
-
-  bullet' = bullet.overrideDerivation (old: {
+  bullet' = pkgs.bullet.overrideDerivation (old: {
     cmakeFlags = (old.cmakeFlags or [ ]) ++ [
       "-Wno-dev"
       "-DOpenGL_GL_PREFERENCE=${GL}"
@@ -57,15 +11,25 @@ let
 
   GL = "GLVND"; # or "LEGACY";
 
-  mkDerivation = pkgs.libsForQt5.callPackage ({ mkDerivation }: mkDerivation) {};
+  qtMkDerivation = pkgs.libsForQt5.callPackage ({ mkDerivation }: mkDerivation) {};
 
-  
-  openxr-sdk = fetchFromGitHub {
-    owner = "KhronosGroup";
-    repo = "OpenXR-SDK";
-    rev = "b7ada0bdecd9830f27c2221dad6f0bb933c64f15";
-    hash = "sha256-YsT6z0uymEF35US1ux7E4JOAK6YeOzryulYVGRi0EjA=";
+  openxr-sdk = pkgs.stdenv.mkDerivation {
+    pname = "openxr-sdk";
+    version = "1.1.43";
+    src = pkgs.fetchFromGitHub {
+      owner = "KhronosGroup";
+      repo = "OpenXR-SDK";
+      rev = "b7ada0bdecd9830f27c2221dad6f0bb933c64f15";
+      hash = "sha256-YsT6z0uymEF35US1ux7E4JOAK6YeOzryulYVGRi0EjA=";
+    };
+    patches = [
+      ./openxr.pc.in.patch
+    ];
+    dontBuild = true;
   };
+
+
+
   #openxr-sdk = fetchFromGitHub {
   #  owner = "bndlfm";
   #  repo = "OpenXR-SDK_4_OpenMW-VR_Nix";
@@ -75,32 +39,26 @@ let
 
 in
 
-  mkDerivation {
+  qtMkDerivation {
     pname = "openmw_vr";
     version = "0.48.0";
 
-    src = fetchFromGitLab {
+    src = pkgs.fetchFromGitLab {
       owner = "madsbuvi";
       repo = "openmw";
       rev = "770584c5112e46be1a00b9e357b0b7f6b449cac5";
       hash = "sha256-C8lFjKIdbHyvRcZzJNUj8Lif9IqNvuYURwRMpb4sxiQ=";
-      postFetch = /*sh*/ ''
-        sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' ${openxr-sdk}/src/loader/openxr.pc.in;
-      '';
     };
 
     postPatch = /*sh*/ ''
-        sed '1i#include <memory>' -i components/myguiplatform/myguidatamanager.cpp ### gcc12
+      sed '1i#include <memory>' -i components/myguiplatform/myguidatamanager.cpp ### gcc12
     ''
-    + lib.optionalString stdenv.hostPlatform.isDarwin /* sh */ ''
-        ### Don't fix Darwin app bundle
-        sed -i '/fixup_bundle/d' CMakeLists.txt
+    + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin /*sh*/ ''
+      ### DON'T FIX DARWIN APP BUNDLE
+      sed -i '/fixup_bundle/d' CMakeLists.txt
     '';
 
-    # If not set, OSG plugin .so files become shell scripts on Darwin.
-    dontWrapQtApps = stdenv.hostPlatform.isDarwin;
-
-    buildInputs = [
+    buildInputs = with pkgs; [
       boost
       bullet'
       doxygen
@@ -129,18 +87,26 @@ in
       xorg.libXxf86vm
     ];
 
-    nativeBuildInputs = [
+    nativeBuildInputs = with pkgs; [
       cmake
       pkg-config
       python3
-      wrapQtAppsHook
+      pkgs.libsForQt5.wrapQtAppsHook
     ];
 
-    runtimeDependencies = [
-      libuuid
-      libGL
-      mesa
-    ];
+
+    #preBuild = /*sh*/ ''
+      ### COPY BROKEN PC.IN TO BUILD DIRECTORY
+       # echo "Making ${sdkBldPath}"
+       # mkdir -p ${sdkBldPath}
+
+       # echo "Copying openxr-sdk git source to ${sdkBldPath}"
+       # cp -v "${openxr-sdk}" "${sdkBldPath}"
+
+       # ### PATCH $NIX_BUILD_TOP/openxr-sdk/src/loader/openxr.pc.in TO REMOVE ''${exec_prefix}/@CMAKE_INSTALL_LIBDIR TO @CMAKE_INSTALL_FULL_LIBDIR
+       # echo "Patching ${sdkBldPath}/src/loader/openxr.pc.in"
+       # sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' ${sdkBldPath}/src/loader/openxr.pc.in
+    #'';
 
     enableParallelBuilding = true;
 
@@ -151,8 +117,17 @@ in
       "-DCMAKE_SKIP_BUILD_RPATH=ON"
       "-DBUILD_OPENMW_VR=ON"
       "-DCMAKE_BUILD_TYPE=RELEASE"
-    ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
+    ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       "-DOPENMW_OSX_DEPLOYMENT=ON"
+    ];
+
+    # If not set, OSG plugin .so files become shell scripts on Darwin.
+    dontWrapQtApps = pkgs.stdenv.hostPlatform.isDarwin;
+
+    runtimeDependencies = with pkgs; [
+      libuuid
+      libGL
+      mesa
     ];
 
     installPhase = /*sh*/ ''
@@ -163,7 +138,7 @@ in
 
 
       ### Think the dir is already made by cmake?
-      mkdir -p "$out/bin"
+      #mkdir -p "$out/bin"
       ### Copy the openmw_vr binary to the output directory.
       install -m755 ./openmw_vr $out/bin
 
