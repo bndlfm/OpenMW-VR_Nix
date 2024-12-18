@@ -85,20 +85,16 @@ in
       rev = "770584c5112e46be1a00b9e357b0b7f6b449cac5";
       hash = "sha256-C8lFjKIdbHyvRcZzJNUj8Lif9IqNvuYURwRMpb4sxiQ=";
       postFetch = /*sh*/ ''
-        substituteInPlace $out/src/loader/openxr.pc.in \
-          --replace 'libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@' 'libdir=@CMAKE_INSTALL_FULL_LIBDIR@'
+        sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' ${openxr-sdk}/src/loader/openxr.pc.in;
       '';
     };
 
     postPatch = /*sh*/ ''
-      sed '1i#include <memory>' -i components/myguiplatform/myguidatamanager.cpp ### gcc12
+        sed '1i#include <memory>' -i components/myguiplatform/myguidatamanager.cpp ### gcc12
     ''
-
-#      substituteInPlace "${openxr-sdk}/src/loader/openxr.pc.in" \
-#        --replace 'libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@' 'libdir=@CMAKE_INSTALL_FULL_LIBDIR@'
-
     + lib.optionalString stdenv.hostPlatform.isDarwin /* sh */ ''
-      sed -i '/fixup_bundle/d' CMakeLists.txt ### Don't fix Darwin app bundle
+        ### Don't fix Darwin app bundle
+        sed -i '/fixup_bundle/d' CMakeLists.txt
     '';
 
     # If not set, OSG plugin .so files become shell scripts on Darwin.
@@ -162,12 +158,13 @@ in
     installPhase = /*sh*/ ''
       runHook preInstall
 
-      # Run the default install phase provided by CMake
+      ### Run the default install phase provided by CMake
       cmake --build . --target install
 
-      mkdir -p "$out/bin"
 
-      # Copy the openmw_vr binary to the output directory.
+      ### Think the dir is already made by cmake?
+      mkdir -p "$out/bin"
+      ### Copy the openmw_vr binary to the output directory.
       install -m755 ./openmw_vr $out/bin
 
       runHook postInstall
