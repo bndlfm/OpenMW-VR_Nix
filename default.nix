@@ -73,7 +73,8 @@ in
           # Patch the openxr.pc.in file in the copied directory
           sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' $out/src/loader/openxr.pc.in
         '';
-      }; in [
+      };
+    in [
       "-DOpenGL_GL_PREFERENCE=LEGACY"
       "-DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1"
       "-DFETCHCONTENT_SOURCE_DIR_OPENXR=${openxr-sdk}"
