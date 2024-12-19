@@ -67,8 +67,8 @@ in
       openxr-sdk = pkgs.fetchFromGitHub {
         owner = "KhronosGroup";
         repo = "OpenXR-SDK";
-        rev = "b7ada0bdecd9830f27c2221dad6f0bb933c64f15";
-        hash = "sha256-Aa4Mok1oXQKbj85spoNDnM93pqaSRrvcRuATsyUCOCw=";
+        rev = "1ca7bec6b531185530c9b4f1e7a50e1fd55e7641";
+        hash = "";
         postFetch = /*sh*/ ''
           # Patch the openxr.pc.in file in the copied directory
           sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' $out/src/loader/openxr.pc.in
