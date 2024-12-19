@@ -86,9 +86,6 @@ in
       --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ pkgs.libglvnd pkgs.libuuid ]}
     ''];
 
-    # If not set, OSG plugin .so files become shell scripts on Darwin.
-    #dontWrapQtApps = pkgs.stdenv.hostPlatform.isDarwin;
-
     installPhase = /*sh*/ ''
       runHook preInstall
 
