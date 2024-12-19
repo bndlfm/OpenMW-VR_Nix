@@ -105,7 +105,7 @@ in
       homepage = "https://openmw.org";
       license = licenses.gpl3Plus;
       maintainers = with maintainers; [ ];
-      platforms = platforms.linux ++ platforms.darwin;
+      platforms = platforms.linux;
     };
   }
 
