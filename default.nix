@@ -29,10 +29,6 @@ in
 
     postPatch = /*sh*/ ''
       sed '1i#include <memory>' -i components/myguiplatform/myguidatamanager.cpp ### gcc12
-    ''
-    + lib.optionalString pkgs.stdenv.hostPlatform.isDarwin /*sh*/ ''
-      ### DON'T FIX DARWIN APP BUNDLE
-      sed -i '/fixup_bundle/d' CMakeLists.txt
     '';
 
     buildInputs = with pkgs; [
@@ -52,11 +48,6 @@ in
       SDL2
       unshield
       yaml-cpp
-    ] ++ lib.optionals stdenv.hostPlatform.isDarwin [
-      CoreMedia
-      VideoDecodeAcceleration
-      VideoToolbox
-    ] ++ lib.optionals stdenv.hostPlatform.isLinux [
       xorg.libXdmcp
       xorg.libXrandr
       xorg.libXt
@@ -82,16 +73,13 @@ in
           # Patch the openxr.pc.in file in the copied directory
           sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' $out/src/loader/openxr.pc.in
         '';
-      };
-    in [
+      }; in [
       "-DOpenGL_GL_PREFERENCE=LEGACY"
       "-DOPENMW_USE_SYSTEM_RECASTNAVIGATION=1"
       "-DFETCHCONTENT_SOURCE_DIR_OPENXR=${openxr-sdk}"
       "-DCMAKE_SKIP_BUILD_RPATH=ON"
       "-DBUILD_OPENMW_VR=ON"
       "-DCMAKE_BUILD_TYPE=RELEASE"
-    ] ++ lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-      "-DOPENMW_OSX_DEPLOYMENT=ON"
     ];
 
     qtWrapperArgs = [ ''
@@ -99,14 +87,7 @@ in
     ''];
 
     # If not set, OSG plugin .so files become shell scripts on Darwin.
-    dontWrapQtApps = pkgs.stdenv.hostPlatform.isDarwin;
-
-    #runtimeDependencies = with pkgs; [
-    #  libuuid
-    #  libGL
-    #  libglvnd
-    #  mesa
-    #];
+    #dontWrapQtApps = pkgs.stdenv.hostPlatform.isDarwin;
 
     installPhase = /*sh*/ ''
       runHook preInstall
