@@ -68,7 +68,7 @@ in
         owner = "KhronosGroup";
         repo = "OpenXR-SDK";
         rev = "1ca7bec6b531185530c9b4f1e7a50e1fd55e7641";
-        hash = "";
+        hash = "sha256-JrmC4kPDqI06Vm6h216zyTCk0REkpxcvYbyIMTxf1C0=";
         postFetch = /*sh*/ ''
           # Patch the openxr.pc.in file in the copied directory
           sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' $out/src/loader/openxr.pc.in
@@ -84,7 +84,7 @@ in
     ];
 
     qtWrapperArgs = [ ''
-      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ pkgs.libglvnd pkgs.libuuid ]}
+      --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ pkgs.libglvnd pkgs.libuuid pkgs.SDL2]}
     ''];
 
     installPhase = /*sh*/ ''
