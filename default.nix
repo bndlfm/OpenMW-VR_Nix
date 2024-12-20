@@ -37,6 +37,7 @@ in
       doxygen
       ffmpeg_6
       graphviz
+      jsoncpp
       libglvnd
       luajit
       lz4
@@ -70,7 +71,7 @@ in
         rev = "1ca7bec6b531185530c9b4f1e7a50e1fd55e7641";
         hash = "sha256-JrmC4kPDqI06Vm6h216zyTCk0REkpxcvYbyIMTxf1C0=";
         postFetch = /*sh*/ ''
-          # Patch the openxr.pc.in file in the copied directory
+          ### PATCH openxr.pc.in TO FIX libdir= //PATH
           sed -i 's|libdir=\''${exec_prefix}/@CMAKE_INSTALL_LIBDIR@|libdir=@CMAKE_INSTALL_FULL_LIBDIR@|' $out/src/loader/openxr.pc.in
         '';
       };
@@ -80,7 +81,6 @@ in
       "-DFETCHCONTENT_SOURCE_DIR_OPENXR=${openxr-sdk}"
       "-DCMAKE_SKIP_BUILD_RPATH=ON"
       "-DBUILD_OPENMW_VR=ON"
-      "-DCMAKE_BUILD_TYPE=RELEASE"
     ];
 
     qtWrapperArgs = [ ''
@@ -104,7 +104,8 @@ in
       description = "Unofficial VR open source engine reimplementation of the game Morrowind";
       homepage = "https://openmw.org";
       license = licenses.gpl3Plus;
-      maintainers = with maintainers; [ ];
+      mainProgram = "openmw-launcher";
+      maintainers = with maintainers; [ bndlfm ];
       platforms = platforms.linux;
     };
   }
