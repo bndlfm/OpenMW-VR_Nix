@@ -99,7 +99,6 @@ in
       runHook postInstall
     '';
 
-
     meta = with lib; {
       description = "Unofficial VR open source engine reimplementation of the game Morrowind";
       homepage = "https://openmw.org";
